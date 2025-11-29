@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { SpotifyData, SpotifyStyle } from '../types';
 import { useSettings } from '../contexts/SettingsContext';
@@ -11,7 +12,7 @@ interface MediaWidgetProps {
   isLoading?: boolean;
 }
 
-export const MediaWidget: React.FC<MediaWidgetProps> = ({ spotify, isPlaying = true, style, isLoading = false }) => {
+export const MediaWidget: React.FC<MediaWidgetProps> = ({ spotify, isPlaying = true, isLoading = false }) => {
   const [currentTime, setCurrentTime] = useState(Date.now());
   const [displayTrack, setDisplayTrack] = useState<SpotifyData | null>(spotify);
   const [animState, setAnimState] = useState<'idle' | 'exiting' | 'entering'>('idle');
@@ -179,7 +180,6 @@ export const MediaWidget: React.FC<MediaWidgetProps> = ({ spotify, isPlaying = t
        );
   }
 
-  const isTransitioning = animState !== 'idle';
   const slideClass = animState === 'exiting' ? '-translate-y-[150%] opacity-0 scale-90' : animState === 'entering' ? 'translate-y-[150%] opacity-0 scale-90' : 'translate-y-0 opacity-100 scale-100';
   
   const titleFontSize = getTitleSize(displayTrack.song);

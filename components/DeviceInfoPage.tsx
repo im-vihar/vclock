@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { useSystemStatus } from '../hooks/useSystemStatus';
-import { Smartphone, Laptop, Monitor, Cpu, Maximize, Activity } from 'lucide-react';
+import { Smartphone, Laptop, Monitor, Maximize, Activity } from 'lucide-react';
 import { WidgetCard } from './WidgetCard';
 
 export const DeviceInfoPage: React.FC = () => {

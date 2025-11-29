@@ -1,9 +1,9 @@
 
 import React, { useState, useEffect } from 'react';
 import { 
-    Calendar, CheckSquare, Battery, BatteryCharging, Wifi, 
+    CheckSquare, Battery, BatteryCharging, 
     Monitor, Activity, CloudRain, Flame, Wind, Plus, Trash2, 
-    Newspaper, Music, Zap
+    Newspaper, Zap
 } from 'lucide-react';
 import { WidgetCard } from './WidgetCard';
 import { useSystemStatus } from '../hooks/useSystemStatus';
@@ -278,7 +278,7 @@ export const WidgetsPage: React.FC = () => {
                 <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6 auto-rows-[minmax(180px,auto)]">
                     
                     {/* System Health (Wide) */}
-                    <WidgetCard title="System Status" className="md:col-span-2 md:row-span-1" span={2}>
+                    <WidgetCard title="System Status" className="md:col-span-2 md:row-span-1">
                         <SystemHealthWidget />
                     </WidgetCard>
 

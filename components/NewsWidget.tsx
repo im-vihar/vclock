@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { Newspaper, ExternalLink } from 'lucide-react';
+import { Newspaper } from 'lucide-react';
 
 const MOCK_NEWS = [
     { id: 1, title: "Next-Gen AI Models Show Promise in Reasoning Tasks", source: "TechDaily" },

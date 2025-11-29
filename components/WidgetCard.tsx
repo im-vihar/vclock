@@ -1,3 +1,4 @@
+
 import React, { ReactNode } from 'react';
 
 interface WidgetCardProps {
@@ -5,10 +6,9 @@ interface WidgetCardProps {
   className?: string;
   title?: string;
   headerAction?: ReactNode;
-  span?: number; // Simplified grid span concept
 }
 
-export const WidgetCard: React.FC<WidgetCardProps> = ({ children, className = '', title, headerAction, span = 1 }) => {
+export const WidgetCard: React.FC<WidgetCardProps> = ({ children, className = '', title, headerAction }) => {
   return (
     <div className={`glass-panel rounded-3xl p-6 flex flex-col relative overflow-hidden transition-all duration-300 hover:bg-white/5 ${className}`}>
       {(title || headerAction) && (

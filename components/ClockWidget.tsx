@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { useSettings } from '../contexts/SettingsContext';
 import { FlipClock } from './FlipClock';
-import { Battery, BatteryCharging, Zap, Wifi, Music } from 'lucide-react';
+import { Battery, Zap, Music } from 'lucide-react';
 import { useSystemStatus } from '../hooks/useSystemStatus';
 import { getWeather } from '../services/weatherService';
 import { SpotifyData } from '../types';

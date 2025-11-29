@@ -1,6 +1,6 @@
 
 import React, { useEffect, useRef, useState } from 'react';
-import { MicOff, Activity } from 'lucide-react';
+import { MicOff } from 'lucide-react';
 
 interface AudioVisualizerProps {
     isActive: boolean;

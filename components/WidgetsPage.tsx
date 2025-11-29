@@ -267,8 +267,6 @@ const NewsTicker = () => {
 // --- MAIN PAGE ---
 
 export const WidgetsPage: React.FC = () => {
-    const { settings } = useSettings();
-    
     return (
         <div className="w-full h-full p-6 md:p-12 overflow-y-auto">
             <div className="max-w-[1600px] mx-auto pb-24">

@@ -27,6 +27,9 @@ export interface AppSettings {
   font: FontOption;
   accentColor: AccentColor;
   
+  // New: Onboarding State
+  hasCompletedOnboarding: boolean;
+
   // Lanyard Settings
   lanyardConnectionMode: LanyardConnectionMode;
   lanyardPollingInterval: number;

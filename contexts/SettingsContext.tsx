@@ -6,7 +6,7 @@ import { AppSettings } from '../types';
 const isMobile = typeof navigator !== 'undefined' && /Mobi|Android/i.test(navigator.userAgent);
 
 const DEFAULT_SETTINGS: AppSettings = {
-  timeFormat: '24h',
+  timeFormat: '12h', // Default to 12h as requested
   discordId: '',
   spotifyStyle: 'vinyl',
   showVinylSleeve: true,
@@ -15,15 +15,17 @@ const DEFAULT_SETTINGS: AppSettings = {
   font: 'inter',
   accentColor: 'indigo',
   
+  hasCompletedOnboarding: false,
+
   lanyardConnectionMode: 'polling',
   lanyardPollingInterval: 2000,
   
   clockStyle: 'modern',
-  clockPosition: 'center', // Requested change: center by default
+  clockPosition: 'center', 
   hideAmPm: true,
   clockTransparency: 1,
   clockShowDate: true,
-  clockShowBattery: isMobile, // Requested change: hide battery on PC/Desktop by default
+  clockShowBattery: isMobile, 
   clockShowWeather: true,
   clockShowNowPlaying: true,
 
@@ -34,7 +36,7 @@ const DEFAULT_SETTINGS: AppSettings = {
   enableGlassTheme: false,
   
   mediaShowDate: true,
-  enableVisualizer: true, // Requested change: enable by default
+  enableVisualizer: true, 
   visualizerSensitivity: 1.5,
   
   keepScreenOn: true,

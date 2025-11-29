@@ -7,6 +7,9 @@ export default {
   ],
   theme: {
     extend: {
+      screens: {
+        'landscape': {'raw': '(orientation: landscape)'},
+      },
       animation: {
         'spin-slow': 'spin 8s linear infinite',
         'fade-in': 'fadeIn 0.5s ease-out forwards',

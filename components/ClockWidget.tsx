@@ -59,7 +59,7 @@ export const ClockWidget: React.FC<ClockWidgetProps> = ({ spotify }) => {
 
   return (
     <div 
-        className={`w-full h-full flex flex-col transition-all duration-1000 ease-[cubic-bezier(0.23,1,0.32,1)] p-8 md:p-12 lg:p-24 pb-32
+        className={`w-full h-full flex flex-col transition-all duration-1000 ease-[cubic-bezier(0.23,1,0.32,1)] p-8 landscape:p-8 md:p-12 lg:p-24 pb-32 landscape:pb-16
         ${isNestMode ? 'items-start justify-end' : 'items-center justify-center'}`}
         style={{ opacity: settings.clockTransparency }}
     >
@@ -71,8 +71,8 @@ export const ClockWidget: React.FC<ClockWidgetProps> = ({ spotify }) => {
           {settings.clockShowDate && (
             <div className={`text-zinc-400 font-medium tracking-wide drop-shadow-lg transition-all duration-500
                 ${isNestMode 
-                    ? 'text-2xl md:text-3xl lg:text-4xl mb-2 lg:mb-4' 
-                    : 'text-center text-[3vw] lg:text-[2vw] mb-4 lg:mb-8 uppercase tracking-[0.3em]'} 
+                    ? 'text-2xl landscape:text-2xl md:text-3xl lg:text-4xl mb-2 lg:mb-4' 
+                    : 'text-center text-[3vw] landscape:text-[3vh] lg:text-[2vw] mb-4 landscape:mb-2 lg:mb-8 uppercase tracking-[0.3em]'} 
                 animate-in fade-in slide-in-from-bottom-4 duration-1000`}>
                 {formatDate(time)}
             </div>
@@ -89,10 +89,10 @@ export const ClockWidget: React.FC<ClockWidgetProps> = ({ spotify }) => {
               />
           ) : settings.clockStyle === 'stack' ? (
                <div className="flex flex-col items-center leading-[0.85]">
-                   <span className="text-[35vw] font-black text-white tracking-tighter drop-shadow-2xl">
+                   <span className="text-[35vw] landscape:text-[35vh] font-black text-white tracking-tighter drop-shadow-2xl">
                        {(settings.timeFormat === '12h' ? (time.getHours() % 12 || 12) : time.getHours()).toString().padStart(2, '0')}
                    </span>
-                   <span className="text-[35vw] font-black text-white/90 tracking-tighter drop-shadow-2xl">
+                   <span className="text-[35vw] landscape:text-[35vh] font-black text-white/90 tracking-tighter drop-shadow-2xl">
                        {time.getMinutes().toString().padStart(2, '0')}
                    </span>
                </div>
@@ -101,15 +101,15 @@ export const ClockWidget: React.FC<ClockWidgetProps> = ({ spotify }) => {
               <div className="relative leading-none flex items-baseline group">
                 <span className={`font-bold tracking-tighter text-white drop-shadow-2xl transition-all duration-500
                     ${isNestMode 
-                        ? 'text-[20vw] lg:text-[14rem]' 
-                        : (settings.showSeconds ? 'text-[18vw]' : 'text-[28vw]')}
+                        ? 'text-[20vw] landscape:text-[20vh] lg:text-[14rem]' 
+                        : (settings.showSeconds ? 'text-[18vw] landscape:text-[18vh]' : 'text-[28vw] landscape:text-[28vh]')}
                     ${settings.clockStyle === 'modern' ? 'bg-clip-text text-transparent bg-gradient-to-b from-white to-white/70 animate-breathing' : ''}
                 `}>
                   {formatTime(time)}
                 </span>
                 {settings.timeFormat === '12h' && !settings.hideAmPm && (
                     <span className={`font-medium text-zinc-500 ml-4
-                        ${isNestMode ? 'text-3xl' : 'text-[4vw]'}`}>
+                        ${isNestMode ? 'text-3xl landscape:text-2xl' : 'text-[4vw] landscape:text-[4vh]'}`}>
                         {getAmPm(time)}
                     </span>
                 )}
@@ -117,8 +117,8 @@ export const ClockWidget: React.FC<ClockWidgetProps> = ({ spotify }) => {
           )}
       </div>
 
-      {/* Status Line (Now visible in center mode too) */}
-      <div className={`flex flex-wrap gap-6 text-zinc-400 transition-opacity items-center mt-8
+      {/* Status Line */}
+      <div className={`flex flex-wrap gap-6 text-zinc-400 transition-opacity items-center mt-8 landscape:mt-4
           ${isNestMode ? 'justify-start opacity-100' : 'justify-center opacity-80'}
       `}>
           {settings.clockShowBattery && (
@@ -137,7 +137,7 @@ export const ClockWidget: React.FC<ClockWidgetProps> = ({ spotify }) => {
           {settings.clockShowNowPlaying && spotify && (
                <div className="flex items-center gap-2 text-zinc-300 bg-white/5 px-4 py-2 rounded-full backdrop-blur-md border border-white/5">
                    <Music size={16} className="animate-pulse text-indigo-400" />
-                   <span className="text-sm md:text-base font-medium max-w-[200px] md:max-w-[400px] truncate">
+                   <span className="text-sm md:text-base font-medium max-w-[150px] landscape:max-w-[250px] md:max-w-[400px] truncate">
                        {spotify.song} <span className="text-zinc-500 mx-1">•</span> <span className="text-zinc-400 text-xs uppercase tracking-wider">{spotify.artist}</span>
                    </span>
                </div>

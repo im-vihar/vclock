@@ -47,18 +47,16 @@ export const MediaWidget: React.FC<MediaWidgetProps> = ({ spotify, isPlaying = t
       return time;
   };
 
-  // Helper to determine font size based on title length
-  // Uses Viewport Width (vw) to aggressively fit text horizontally on one line
+  // Optimized for viewport width fitting on portrait, but needs to handle landscape differently
   const getTitleSize = (title: string) => {
       const len = title.length;
-      if (len < 8) return 'clamp(5rem, 16vw, 14rem)';  // Extremely short (e.g. "Weekend")
-      if (len < 15) return 'clamp(4rem, 12vw, 10rem)'; // Short
-      if (len < 25) return 'clamp(3rem, 9vw, 8rem)';   // Medium
-      if (len < 40) return 'clamp(2.5rem, 7vw, 6rem)'; // Long
-      return 'clamp(2rem, 5vw, 4.5rem)';               // Very long
+      if (len < 8) return 'clamp(3rem, 15vw, 12rem)'; 
+      if (len < 15) return 'clamp(2.5rem, 10vw, 8rem)';
+      if (len < 25) return 'clamp(2rem, 7vw, 6rem)';
+      if (len < 40) return 'clamp(1.5rem, 5vw, 5rem)';
+      return 'clamp(1.5rem, 4vw, 4rem)';
   };
 
-  // Transition Logic
   useEffect(() => {
     if (spotify?.track_id !== displayTrack?.track_id) {
         if (!displayTrack) {
@@ -102,8 +100,6 @@ export const MediaWidget: React.FC<MediaWidgetProps> = ({ spotify, isPlaying = t
       updateSettings({ discordId: final });
   };
 
-
-  // Empty State: No ID set
   if (!settings.discordId) {
       return (
           <div className="flex flex-col items-center justify-center h-full space-y-8 animate-fade-in text-center p-8 overflow-y-auto">
@@ -141,7 +137,6 @@ export const MediaWidget: React.FC<MediaWidgetProps> = ({ spotify, isPlaying = t
       );
   }
 
-  // Loading State
   if (isLoading && !displayTrack) {
       return (
           <div className="flex flex-col items-center justify-center h-full space-y-8 animate-fade-in">
@@ -157,7 +152,6 @@ export const MediaWidget: React.FC<MediaWidgetProps> = ({ spotify, isPlaying = t
       );
   }
 
-  // Empty State: Not Playing
   if (!displayTrack) {
        return (
           <div className="flex flex-col items-center justify-center h-full space-y-8 animate-fade-in relative w-full p-8">
@@ -181,16 +175,14 @@ export const MediaWidget: React.FC<MediaWidgetProps> = ({ spotify, isPlaying = t
   }
 
   const slideClass = animState === 'exiting' ? '-translate-y-[150%] opacity-0 scale-90' : animState === 'entering' ? 'translate-y-[150%] opacity-0 scale-90' : 'translate-y-0 opacity-100 scale-100';
-  
   const titleFontSize = getTitleSize(displayTrack.song);
 
-  // Use VH for landscape height scaling, VW for portrait
   const renderVisual = () => {
       switch (settings.spotifyStyle) {
           case 'card':
                return (
                   <div className={`relative flex-shrink-0 transition-all duration-700 ease-[cubic-bezier(0.34,1.56,0.64,1)] ${slideClass} z-10`}>
-                       <div className="w-[80vw] h-[80vw] md:w-[45vh] md:h-[45vh] rounded-lg shadow-2xl overflow-hidden border border-white/10 relative group">
+                       <div className="w-[80vw] h-[80vw] landscape:w-[45vh] landscape:h-[45vh] md:w-[45vh] md:h-[45vh] rounded-lg shadow-2xl overflow-hidden border border-white/10 relative group">
                            <img src={displayTrack.album_art_url} alt="Album Art" className="w-full h-full object-cover transition-transform duration-[20s] ease-linear group-hover:scale-110" />
                            {!isPlaying && <div className="absolute inset-0 bg-black/40 flex items-center justify-center backdrop-blur-sm"><Pause size={64} className="text-white fill-current" /></div>}
                        </div>
@@ -199,7 +191,7 @@ export const MediaWidget: React.FC<MediaWidgetProps> = ({ spotify, isPlaying = t
           case 'minimal':
                return (
                    <div className={`relative flex-shrink-0 transition-all duration-700 ease-[cubic-bezier(0.34,1.56,0.64,1)] ${slideClass} z-10`}>
-                        <div className="w-[40vw] h-[40vw] md:w-[30vh] md:h-[30vh] rounded-lg shadow-2xl overflow-hidden border border-white/10 relative">
+                        <div className="w-[40vw] h-[40vw] landscape:w-[30vh] landscape:h-[30vh] md:w-[30vh] md:h-[30vh] rounded-lg shadow-2xl overflow-hidden border border-white/10 relative">
                             <img src={displayTrack.album_art_url} alt="Album Art" className="w-full h-full object-cover" />
                         </div>
                    </div>
@@ -208,7 +200,7 @@ export const MediaWidget: React.FC<MediaWidgetProps> = ({ spotify, isPlaying = t
           default:
                return (
                   <div className={`relative flex-shrink-0 transition-all duration-700 ease-[cubic-bezier(0.34,1.56,0.64,1)] ${slideClass} z-10`}>
-                       <div className="relative group perspective-1000 w-[80vw] h-[80vw] md:w-[38vh] md:h-[38vh] z-10">
+                       <div className="relative group perspective-1000 w-[80vw] h-[80vw] landscape:w-[38vh] landscape:h-[38vh] md:w-[38vh] md:h-[38vh] z-10">
                            {settings.showVinylSleeve && (
                                <div className="absolute top-0 bottom-0 left-0 w-full z-20 shadow-2xl transition-transform duration-700 origin-bottom-left" style={{ transform: isPlaying ? 'rotate(-5deg) translateX(-10%)' : 'rotate(0deg) translateX(0px)' }}>
                                   <img src={displayTrack.album_art_url} alt="Album Art" className="w-full h-full object-cover rounded-md shadow-[5px_0_20px_rgba(0,0,0,0.5)] border border-white/10" />
@@ -231,17 +223,15 @@ export const MediaWidget: React.FC<MediaWidgetProps> = ({ spotify, isPlaying = t
   };
 
   return (
-    <div className="relative w-full h-full flex flex-col md:flex-row items-center justify-between gap-16 md:gap-32 lg:gap-48 p-8 md:px-16 lg:px-24 overflow-hidden">
+    <div className="relative w-full h-full flex flex-col landscape:flex-row md:flex-row items-center justify-center landscape:justify-between md:justify-between gap-12 landscape:gap-20 md:gap-32 lg:gap-48 p-8 landscape:px-16 md:px-16 lg:px-24 overflow-hidden">
         
-        {/* GLOBAL VISUALIZER LAYER (Bottom) */}
         {settings.enableVisualizer && isPlaying && (
             <div className="absolute bottom-0 left-0 right-0 h-[40vh] z-0 pointer-events-none mix-blend-overlay opacity-80 mask-gradient-to-t">
-                <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent z-10" /> {/* Soften bottom edge */}
+                <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent z-10" /> 
                 <AudioVisualizer isActive={true} sensitivity={settings.visualizerSensitivity} />
             </div>
         )}
 
-        {/* Toggle Visualizer Button (Corner - Discreet) */}
         <div className="absolute bottom-8 right-8 z-50 flex items-center gap-2 group opacity-20 hover:opacity-100 transition-opacity duration-300">
              <button 
                 onClick={() => updateSettings({ enableVisualizer: !settings.enableVisualizer })}
@@ -254,33 +244,31 @@ export const MediaWidget: React.FC<MediaWidgetProps> = ({ spotify, isPlaying = t
 
         {isPlaying && (
             <>
-                <div className="absolute top-8 left-8 md:top-10 md:left-12 z-20 pointer-events-none select-none animate-fade-in">
+                <div className="absolute top-8 left-8 landscape:top-6 landscape:left-8 md:top-10 md:left-12 z-20 pointer-events-none select-none animate-fade-in">
                     {settings.mediaShowDate && <div className="text-xs md:text-sm font-bold text-zinc-500 uppercase tracking-[0.2em] opacity-50">{formatMiniDate(currentTime)}</div>}
                 </div>
-                <div className="absolute top-8 right-8 md:top-10 md:right-12 z-20 pointer-events-none select-none animate-fade-in">
+                <div className="absolute top-8 right-8 landscape:top-6 landscape:right-8 md:top-10 md:right-12 z-20 pointer-events-none select-none animate-fade-in">
                     <div className="text-xs md:text-sm font-bold text-zinc-500 uppercase tracking-[0.2em] font-mono opacity-50">{formatTime(currentTime)}</div>
                 </div>
             </>
         )}
 
-        <div className="flex items-center justify-center flex-shrink-0 z-10">
+        <div className="flex items-center justify-center flex-shrink-0 z-10 landscape:ml-8 md:ml-0">
              {renderVisual()}
         </div>
 
-        <div className={`flex flex-col justify-center items-center md:items-start text-center md:text-left transition-all duration-500 delay-100 ${slideClass} flex-1 min-w-0 px-4 pt-12 md:pt-0 md:pl-24 z-30 w-full max-w-[90vw] md:max-w-[70vw]`}>
-            <div className="space-y-6 w-full">
-                {/* Song Title: Optimized for single line with fallback */}
+        <div className={`flex flex-col justify-center items-center landscape:items-start md:items-start text-center landscape:text-left md:text-left transition-all duration-500 delay-100 ${slideClass} flex-1 min-w-0 px-4 pt-8 landscape:pt-0 md:pt-0 landscape:pl-16 md:pl-24 z-30 w-full max-w-[90vw] landscape:max-w-[50vw] md:max-w-[70vw]`}>
+            <div className="space-y-4 landscape:space-y-6 md:space-y-6 w-full">
                 <h1 className="font-black text-white leading-[1.1] tracking-tighter drop-shadow-2xl w-full pb-2" style={{ fontSize: titleFontSize, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
                     {displayTrack.song}
                 </h1>
                 
-                {/* Artist: Single line truncation preferred, fallback to 2 */}
-                <div className="font-bold text-white/60 tracking-tight w-full leading-normal mt-4 text-xl md:text-3xl" style={{ display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+                <div className="font-bold text-white/60 tracking-tight w-full leading-normal text-xl landscape:text-2xl md:text-3xl" style={{ display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
                     {displayTrack.artist.replace(/; /g, ', ')}
                 </div>
                 
                 {displayTrack.album !== displayTrack.song && (
-                    <div className="font-medium text-white/30 tracking-widest uppercase pt-4 w-full text-lg md:text-xl" style={{ display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+                    <div className="font-medium text-white/30 tracking-widest uppercase pt-2 landscape:pt-4 md:pt-4 w-full text-lg landscape:text-xl md:text-xl" style={{ display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
                         {displayTrack.album}
                     </div>
                 )}

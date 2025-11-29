@@ -8,6 +8,7 @@ import { DeviceInfoPage } from './components/DeviceInfoPage';
 import { Carousel } from './components/Carousel';
 import { SettingsModal } from './components/SettingsModal';
 import { Screensaver } from './components/Screensaver';
+import { OnboardingOverlay } from './components/OnboardingOverlay';
 import { SettingsProvider, useSettings } from './contexts/SettingsContext';
 import { useLanyard } from './hooks/useLanyard';
 import { useWakeLock } from './hooks/useWakeLock';
@@ -177,6 +178,8 @@ const AppContent: React.FC = () => {
   return (
     <div className={`h-screen w-screen bg-[#020202] text-zinc-100 overflow-hidden relative selection:bg-white/20 ${settings.enableGlassTheme ? 'theme-liquid' : ''}`}>
       
+      <OnboardingOverlay />
+
       {/* Screensaver Overlay */}
       {isIdle && settings.screensaverTimeout > 0 && <Screensaver />}
 
@@ -202,9 +205,9 @@ const AppContent: React.FC = () => {
         }}
       />
       
-      {/* Top Bar - Large Touch Targets */}
+      {/* Top Bar - Large Touch Targets - Adjusted for Landscape */}
       {!isIdle && (
-        <div className="absolute top-0 left-0 right-0 z-50 p-6 md:p-8 flex justify-between items-start pointer-events-none">
+        <div className="absolute top-0 left-0 right-0 z-50 p-6 landscape:p-4 md:p-8 flex justify-between items-start pointer-events-none">
             <div className={`pointer-events-auto flex items-center gap-4 transition-opacity duration-500 ${shouldHideTopClock ? 'opacity-0' : 'opacity-100'}`}>
                 {/* Mini Clock - Hidden on Media Page & Clock Page */}
                 <div className={`px-6 py-4 rounded-full backdrop-blur-md border border-white/5 ${settings.enableGlassTheme ? 'bg-white/10 shadow-xl' : 'bg-white/5'}`}>
@@ -214,13 +217,15 @@ const AppContent: React.FC = () => {
             <div className="flex gap-4 pointer-events-auto opacity-0 hover:opacity-100 transition-opacity duration-300">
                 <button 
                     onClick={() => setIsSettingsOpen(true)} 
-                    className="p-6 bg-white/5 hover:bg-white/10 rounded-full backdrop-blur-md transition-colors active:scale-90 duration-200 border border-white/5 shadow-lg"
+                    className="p-6 landscape:p-4 bg-white/5 hover:bg-white/10 rounded-full backdrop-blur-md transition-colors active:scale-90 duration-200 border border-white/5 shadow-lg"
+                    aria-label="Settings"
                 >
                     <Settings size={32}/>
                 </button>
                 <button 
                     onClick={() => isFullscreen ? document.exitFullscreen() : document.documentElement.requestFullscreen()} 
-                    className="p-6 bg-white/5 hover:bg-white/10 rounded-full backdrop-blur-md transition-colors active:scale-90 duration-200 border border-white/5 shadow-lg"
+                    className="p-6 landscape:p-4 bg-white/5 hover:bg-white/10 rounded-full backdrop-blur-md transition-colors active:scale-90 duration-200 border border-white/5 shadow-lg"
+                    aria-label="Fullscreen Toggle"
                 >
                     {isFullscreen ? <Minimize2 size={32}/> : <Maximize2 size={32}/>}
                 </button>
@@ -241,7 +246,7 @@ const AppContent: React.FC = () => {
 
       {/* Page Indicators - Touch Friendly */}
       {!isIdle && (
-        <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 z-40 flex gap-6 pointer-events-auto mix-blend-overlay p-6">
+        <div className="absolute bottom-8 landscape:bottom-4 left-1/2 transform -translate-x-1/2 z-40 flex gap-6 landscape:gap-4 pointer-events-auto mix-blend-overlay p-6 landscape:p-2">
             {pages.map((_, i) => (
                 <button 
                     key={i} 

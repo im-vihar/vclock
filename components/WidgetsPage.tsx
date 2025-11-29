@@ -149,11 +149,18 @@ const AmbienceMixer = () => {
 };
 
 const TodoWidget = () => {
-    const [tasks, setTasks] = useState<{id: number, text: string, done: boolean}[]>([
-        { id: 1, text: "Review System Logs", done: false },
-        { id: 2, text: "Backup Data", done: true },
-    ]);
+    const [tasks, setTasks] = useState<{id: number, text: string, done: boolean}[]>(() => {
+        const saved = localStorage.getItem('vclock_tasks_v1');
+        return saved ? JSON.parse(saved) : [
+            { id: 1, text: "Review System Logs", done: false },
+            { id: 2, text: "Backup Data", done: true },
+        ];
+    });
     const [input, setInput] = useState("");
+
+    useEffect(() => {
+        localStorage.setItem('vclock_tasks_v1', JSON.stringify(tasks));
+    }, [tasks]);
 
     const add = () => {
         if (!input.trim()) return;

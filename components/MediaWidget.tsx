@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { SpotifyData, SpotifyStyle } from '../types';
 import { useSettings } from '../contexts/SettingsContext';
@@ -48,14 +47,14 @@ export const MediaWidget: React.FC<MediaWidgetProps> = ({ spotify, isPlaying = t
   };
 
   // Helper to determine font size based on title length
-  // Switched to VW (Viewport Width) units to prioritize fitting horizontally on one line
+  // Uses Viewport Width (vw) to aggressively fit text horizontally on one line
   const getTitleSize = (title: string) => {
       const len = title.length;
-      if (len < 10) return 'clamp(4rem, 15vw, 12rem)'; // Massive, fits width
-      if (len < 20) return 'clamp(3rem, 10vw, 8rem)';  // Big, fits width
-      if (len < 30) return 'clamp(2.5rem, 7vw, 6rem)'; // Medium, try 1 line
-      if (len < 45) return 'clamp(2rem, 5vw, 4.5rem)'; // Long, try 1 line
-      return 'clamp(1.5rem, 4vw, 4rem)';               // Very long, allow wrap
+      if (len < 8) return 'clamp(5rem, 16vw, 14rem)';  // Extremely short (e.g. "Weekend")
+      if (len < 15) return 'clamp(4rem, 12vw, 10rem)'; // Short
+      if (len < 25) return 'clamp(3rem, 9vw, 8rem)';   // Medium
+      if (len < 40) return 'clamp(2.5rem, 7vw, 6rem)'; // Long
+      return 'clamp(2rem, 5vw, 4.5rem)';               // Very long
   };
 
   // Transition Logic
@@ -270,12 +269,16 @@ export const MediaWidget: React.FC<MediaWidgetProps> = ({ spotify, isPlaying = t
 
         <div className={`flex flex-col justify-center items-center md:items-start text-center md:text-left transition-all duration-500 delay-100 ${slideClass} flex-1 min-w-0 px-4 pt-12 md:pt-0 md:pl-24 z-30 w-full max-w-[90vw] md:max-w-[70vw]`}>
             <div className="space-y-6 w-full">
+                {/* Song Title: Optimized for single line with fallback */}
                 <h1 className="font-black text-white leading-[1.1] tracking-tighter drop-shadow-2xl w-full pb-2" style={{ fontSize: titleFontSize, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
                     {displayTrack.song}
                 </h1>
+                
+                {/* Artist: Single line truncation preferred, fallback to 2 */}
                 <div className="font-bold text-white/60 tracking-tight w-full leading-normal mt-4 text-xl md:text-3xl" style={{ display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
                     {displayTrack.artist.replace(/; /g, ', ')}
                 </div>
+                
                 {displayTrack.album !== displayTrack.song && (
                     <div className="font-medium text-white/30 tracking-widest uppercase pt-4 w-full text-lg md:text-xl" style={{ display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
                         {displayTrack.album}

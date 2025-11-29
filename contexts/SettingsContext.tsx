@@ -2,6 +2,9 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { AppSettings } from '../types';
 
+// Simple heuristic for default settings
+const isMobile = typeof navigator !== 'undefined' && /Mobi|Android/i.test(navigator.userAgent);
+
 const DEFAULT_SETTINGS: AppSettings = {
   timeFormat: '24h',
   discordId: '',
@@ -16,11 +19,11 @@ const DEFAULT_SETTINGS: AppSettings = {
   lanyardPollingInterval: 2000,
   
   clockStyle: 'modern',
-  clockPosition: 'bottom-left',
+  clockPosition: 'center', // Requested change: center by default
   hideAmPm: true,
   clockTransparency: 1,
   clockShowDate: true,
-  clockShowBattery: true,
+  clockShowBattery: isMobile, // Requested change: hide battery on PC/Desktop by default
   clockShowWeather: true,
   clockShowNowPlaying: true,
 
@@ -31,11 +34,11 @@ const DEFAULT_SETTINGS: AppSettings = {
   enableGlassTheme: false,
   
   mediaShowDate: true,
-  enableVisualizer: false,
+  enableVisualizer: true, // Requested change: enable by default
   visualizerSensitivity: 1.5,
   
   keepScreenOn: true,
-  screensaverTimeout: 15, // Default 15 minutes
+  screensaverTimeout: 15,
   
   enableDashboard: false,
   enableFocus: false,

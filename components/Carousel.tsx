@@ -57,7 +57,8 @@ export const Carousel: React.FC<CarouselProps> = ({ children, activeIndex, onCha
         style={{ transform: `translateX(calc(-${activeIndex * 100}% - ${isDragging ? dragOffset : 0}px))` }}
       >
         {children.map((child, index) => (
-          <div key={index} className="w-full h-full flex-shrink-0 flex items-center justify-center p-4">
+          // Removed p-4 to allow full edge-to-edge content
+          <div key={index} className="w-full h-full flex-shrink-0 flex items-center justify-center">
             {child}
           </div>
         ))}

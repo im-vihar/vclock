@@ -7,6 +7,7 @@ import { WidgetsPage } from './components/WidgetsPage';
 import { DeviceInfoPage } from './components/DeviceInfoPage';
 import { Carousel } from './components/Carousel';
 import { SettingsModal } from './components/SettingsModal';
+import { Screensaver } from './components/Screensaver';
 import { SettingsProvider, useSettings } from './contexts/SettingsContext';
 import { useLanyard } from './hooks/useLanyard';
 import { useWakeLock } from './hooks/useWakeLock';
@@ -20,7 +21,7 @@ const TopBarClock = () => {
         return () => clearInterval(t);
     }, []);
     return (
-        <div className="text-xl md:text-2xl font-bold text-white/80 font-mono">
+        <div className="text-xl md:text-3xl font-bold text-white/80 font-mono">
             {time.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: settings.timeFormat === '12h' }).replace(/AM|PM/, '').trim()}
         </div>
     );
@@ -30,12 +31,14 @@ const AppContent: React.FC = () => {
   const [activePage, setActivePage] = useState(0);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [isIdle, setIsIdle] = useState(false);
   
   const { settings } = useSettings();
-  const { data: lanyardData } = useLanyard(settings.discordId);
+  const { data: lanyardData, isLoading: isLanyardLoading } = useLanyard(settings.discordId);
   const { requestWakeLock, releaseWakeLock } = useWakeLock();
   
   const prevListeningRef = useRef(lanyardData.listening_to_spotify);
+  const idleTimerRef = useRef<number | null>(null);
 
   // Define Pages dynamically
   const pages = [
@@ -45,8 +48,13 @@ const AppContent: React.FC = () => {
       },
       { 
           id: 'media', 
-          component: <div className="w-full h-full flex items-center justify-center p-0 md:p-8">
-              <MediaWidget spotify={lanyardData.spotify} style={settings.spotifyStyle} isPlaying={lanyardData.listening_to_spotify} />
+          component: <div className="w-full h-full flex items-center justify-center p-0">
+              <MediaWidget 
+                spotify={lanyardData.spotify} 
+                style={settings.spotifyStyle} 
+                isPlaying={lanyardData.listening_to_spotify} 
+                isLoading={isLanyardLoading}
+              />
           </div> 
       },
   ];
@@ -77,6 +85,36 @@ const AppContent: React.FC = () => {
       window.addEventListener('keydown', handleEsc);
       return () => window.removeEventListener('keydown', handleEsc);
   }, []);
+
+  // Idle Timer / Screensaver Logic
+  useEffect(() => {
+      const resetIdle = () => {
+          setIsIdle(false);
+          if (idleTimerRef.current) clearTimeout(idleTimerRef.current);
+          if (settings.screensaverTimeout > 0) {
+              idleTimerRef.current = window.setTimeout(() => {
+                  setIsIdle(true);
+              }, settings.screensaverTimeout * 60 * 1000);
+          }
+      };
+
+      // Events that reset idle
+      window.addEventListener('mousemove', resetIdle);
+      window.addEventListener('keydown', resetIdle);
+      window.addEventListener('touchstart', resetIdle);
+      window.addEventListener('click', resetIdle);
+
+      // Init timer
+      resetIdle();
+
+      return () => {
+          window.removeEventListener('mousemove', resetIdle);
+          window.removeEventListener('keydown', resetIdle);
+          window.removeEventListener('touchstart', resetIdle);
+          window.removeEventListener('click', resetIdle);
+          if (idleTimerRef.current) clearTimeout(idleTimerRef.current);
+      };
+  }, [settings.screensaverTimeout]);
 
   // Auto Switch Logic
   useEffect(() => {
@@ -126,53 +164,69 @@ const AppContent: React.FC = () => {
   }, []);
 
   // Background Logic
-  let bgImage = settings.predefinedWallpaper ? `url(${settings.predefinedWallpaper})` : undefined;
-  if (settings.customBackgroundUrl) bgImage = `url(${settings.customBackgroundUrl})`;
+  const defaultBg = settings.customBackgroundUrl || settings.predefinedWallpaper;
+  const musicBg = lanyardData.spotify?.album_art_url;
+  const isPlayingMusic = lanyardData.listening_to_spotify && musicBg;
   
-  let bgBlur = settings.backgroundBlur;
+  const bgBlur = settings.backgroundBlur;
 
-  // Use current song for background if available
-  if (lanyardData.spotify?.album_art_url) {
-      bgImage = `url(${lanyardData.spotify.album_art_url})`;
-      bgBlur = 60;
-  }
-  
   const activePageId = pages[activePage]?.id;
   // Hide top clock on 'clock' page (redundant) and 'media' page (has its own clock)
-  const shouldHideTopClock = activePageId === 'media' || activePageId === 'clock';
+  const shouldHideTopClock = activePageId === 'media' || activePageId === 'clock' || isIdle;
 
   return (
     <div className={`h-screen w-screen bg-[#020202] text-zinc-100 overflow-hidden relative selection:bg-white/20 ${settings.enableGlassTheme ? 'theme-liquid' : ''}`}>
       
-      {/* Background */}
+      {/* Screensaver Overlay */}
+      {isIdle && settings.screensaverTimeout > 0 && <Screensaver />}
+
+      {/* Background Layer 1: Default Wallpaper */}
       <div 
-        className="absolute inset-0 z-0 bg-cover bg-center transition-all duration-[2000ms] transform scale-105"
-        style={{ backgroundImage: bgImage, filter: `blur(${bgBlur}px) brightness(0.4)` }}
+        className="absolute inset-0 z-0 bg-cover bg-center transition-all duration-[3000ms] ease-in-out transform"
+        style={{ 
+            backgroundImage: `url(${defaultBg})`, 
+            filter: `blur(${bgBlur}px) brightness(0.4)`,
+            opacity: 1, // Always visible underneath
+            transform: isPlayingMusic ? 'scale(1.0)' : 'scale(1.05)'
+        }}
+      />
+
+      {/* Background Layer 2: Album Art (Overlay) */}
+      <div 
+        className="absolute inset-0 z-0 bg-cover bg-center transition-all duration-[3000ms] ease-in-out transform"
+        style={{ 
+            backgroundImage: `url(${musicBg})`, 
+            filter: `blur(60px) brightness(0.4)`,
+            opacity: isPlayingMusic ? 1 : 0,
+            transform: isPlayingMusic ? 'scale(1.05)' : 'scale(1.0)' // Breathing effect: scales up when active, scales down when fading out
+        }}
       />
       
       {/* Top Bar - Large Touch Targets */}
-      <div className="absolute top-0 left-0 right-0 z-50 p-6 md:p-8 flex justify-between items-start pointer-events-none">
-        <div className={`pointer-events-auto flex items-center gap-4 transition-opacity duration-500 ${shouldHideTopClock ? 'opacity-0' : 'opacity-100'}`}>
-             {/* Mini Clock - Hidden on Media Page & Clock Page */}
-            <div className={`px-6 py-3 rounded-full backdrop-blur-md border border-white/5 ${settings.enableGlassTheme ? 'bg-white/10 shadow-xl' : 'bg-white/5'}`}>
-                <TopBarClock />
+      {!isIdle && (
+        <div className="absolute top-0 left-0 right-0 z-50 p-6 md:p-8 flex justify-between items-start pointer-events-none">
+            <div className={`pointer-events-auto flex items-center gap-4 transition-opacity duration-500 ${shouldHideTopClock ? 'opacity-0' : 'opacity-100'}`}>
+                {/* Mini Clock - Hidden on Media Page & Clock Page */}
+                <div className={`px-6 py-4 rounded-full backdrop-blur-md border border-white/5 ${settings.enableGlassTheme ? 'bg-white/10 shadow-xl' : 'bg-white/5'}`}>
+                    <TopBarClock />
+                </div>
+            </div>
+            <div className="flex gap-4 pointer-events-auto opacity-0 hover:opacity-100 transition-opacity duration-300">
+                <button 
+                    onClick={() => setIsSettingsOpen(true)} 
+                    className="p-6 bg-white/5 hover:bg-white/10 rounded-full backdrop-blur-md transition-colors active:scale-90 duration-200 border border-white/5 shadow-lg"
+                >
+                    <Settings size={32}/>
+                </button>
+                <button 
+                    onClick={() => isFullscreen ? document.exitFullscreen() : document.documentElement.requestFullscreen()} 
+                    className="p-6 bg-white/5 hover:bg-white/10 rounded-full backdrop-blur-md transition-colors active:scale-90 duration-200 border border-white/5 shadow-lg"
+                >
+                    {isFullscreen ? <Minimize2 size={32}/> : <Maximize2 size={32}/>}
+                </button>
             </div>
         </div>
-        <div className="flex gap-4 pointer-events-auto opacity-0 hover:opacity-100 transition-opacity duration-300">
-             <button 
-                onClick={() => setIsSettingsOpen(true)} 
-                className="p-5 bg-white/5 hover:bg-white/10 rounded-full backdrop-blur-md transition-colors active:scale-90 duration-200 border border-white/5 shadow-lg"
-             >
-                <Settings size={28}/>
-             </button>
-             <button 
-                onClick={() => isFullscreen ? document.exitFullscreen() : document.documentElement.requestFullscreen()} 
-                className="p-5 bg-white/5 hover:bg-white/10 rounded-full backdrop-blur-md transition-colors active:scale-90 duration-200 border border-white/5 shadow-lg"
-             >
-                {isFullscreen ? <Minimize2 size={28}/> : <Maximize2 size={28}/>}
-             </button>
-        </div>
-      </div>
+      )}
 
       {/* Main Content */}
       <main className="relative z-10 w-full h-full">
@@ -186,16 +240,18 @@ const AppContent: React.FC = () => {
       </main>
 
       {/* Page Indicators - Touch Friendly */}
-      <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 z-40 flex gap-4 pointer-events-auto mix-blend-overlay p-4">
-          {pages.map((_, i) => (
-              <button 
-                key={i} 
-                onClick={() => setActivePage(i)}
-                className={`h-2 rounded-full transition-all duration-500 ease-out cursor-pointer ${activePage === i ? 'w-12 bg-white shadow-[0_0_15px_white]' : 'w-3 bg-white/30 hover:bg-white/50'}`}
-                aria-label={`Go to page ${i + 1}`}
-              />
-          ))}
-      </div>
+      {!isIdle && (
+        <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 z-40 flex gap-6 pointer-events-auto mix-blend-overlay p-6">
+            {pages.map((_, i) => (
+                <button 
+                    key={i} 
+                    onClick={() => setActivePage(i)}
+                    className={`h-3 rounded-full transition-all duration-500 ease-out cursor-pointer shadow-lg ${activePage === i ? 'w-16 bg-white shadow-[0_0_20px_white]' : 'w-4 bg-white/30 hover:bg-white/50'}`}
+                    aria-label={`Go to page ${i + 1}`}
+                />
+            ))}
+        </div>
+      )}
 
       <SettingsModal isOpen={isSettingsOpen} onClose={() => setIsSettingsOpen(false)} />
     </div>

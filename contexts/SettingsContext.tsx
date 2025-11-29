@@ -12,6 +12,9 @@ const DEFAULT_SETTINGS: AppSettings = {
   font: 'inter',
   accentColor: 'indigo',
   
+  lanyardConnectionMode: 'polling',
+  lanyardPollingInterval: 2000,
+  
   clockStyle: 'modern',
   clockPosition: 'bottom-left',
   hideAmPm: true,
@@ -28,8 +31,11 @@ const DEFAULT_SETTINGS: AppSettings = {
   enableGlassTheme: false,
   
   mediaShowDate: true,
+  enableVisualizer: false,
+  visualizerSensitivity: 1.5,
   
   keepScreenOn: true,
+  screensaverTimeout: 15, // Default 15 minutes
   
   enableDashboard: false,
   enableFocus: false,
@@ -46,12 +52,12 @@ const SettingsContext = createContext<SettingsContextType | undefined>(undefined
 
 export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [settings, setSettings] = useState<AppSettings>(() => {
-    const saved = localStorage.getItem('cobalt_settings_v6');
+    const saved = localStorage.getItem('cobalt_settings_v8');
     return saved ? { ...DEFAULT_SETTINGS, ...JSON.parse(saved) } : DEFAULT_SETTINGS;
   });
 
   useEffect(() => {
-    localStorage.setItem('cobalt_settings_v6', JSON.stringify(settings));
+    localStorage.setItem('cobalt_settings_v8', JSON.stringify(settings));
   }, [settings]);
 
   const updateSettings = (newSettings: Partial<AppSettings>) => {

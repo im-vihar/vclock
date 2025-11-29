@@ -15,6 +15,7 @@ export type FontOption = 'inter' | 'mono' | 'serif' | 'bebas' | 'oswald' | 'digi
 export type AccentColor = 'indigo' | 'emerald' | 'rose' | 'amber' | 'cyan' | 'white';
 export type ClockStyle = 'digital' | 'flip' | 'modern' | 'stack';
 export type ClockPosition = 'center' | 'bottom-left';
+export type LanyardConnectionMode = 'websocket' | 'polling';
 
 export interface AppSettings {
   timeFormat: TimeFormat;
@@ -25,6 +26,10 @@ export interface AppSettings {
   showSeconds: boolean;
   font: FontOption;
   accentColor: AccentColor;
+  
+  // Lanyard Settings
+  lanyardConnectionMode: LanyardConnectionMode;
+  lanyardPollingInterval: number;
   
   // Clock Page Toggles
   clockStyle: ClockStyle;
@@ -45,9 +50,12 @@ export interface AppSettings {
   
   // Media Page Toggles
   mediaShowDate: boolean;
+  enableVisualizer: boolean;
+  visualizerSensitivity: number;
   
-  // Hardware
+  // Hardware / System
   keepScreenOn: boolean;
+  screensaverTimeout: number; // in minutes, 0 to disable
   
   // Page Toggles
   enableDashboard: boolean;

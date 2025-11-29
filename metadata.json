@@ -1,5 +1,5 @@
 {
-  "name": "Cobalt Home",
+  "name": "vclock",
   "description": "A sleek, customizable smart display dashboard inspired by modern design tools. Turn any device into a focused information hub with clock, weather, and AI assistant features.",
   "requestFramePermissions": [
     "microphone",

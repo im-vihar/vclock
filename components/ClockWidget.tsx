@@ -59,7 +59,7 @@ export const ClockWidget: React.FC<ClockWidgetProps> = ({ spotify }) => {
 
   return (
     <div 
-        className={`w-full h-full flex flex-col transition-all duration-1000 ease-[cubic-bezier(0.23,1,0.32,1)] p-8 md:p-12 lg:p-24
+        className={`w-full h-full flex flex-col transition-all duration-1000 ease-[cubic-bezier(0.23,1,0.32,1)] p-8 md:p-12 lg:p-24 pb-32
         ${isNestMode ? 'items-start justify-end' : 'items-center justify-center'}`}
         style={{ opacity: settings.clockTransparency }}
     >

@@ -2,15 +2,17 @@
 import React, { useEffect, useState } from 'react';
 import { SpotifyData, SpotifyStyle } from '../types';
 import { useSettings } from '../contexts/SettingsContext';
-import { Disc, Music, ArrowRight, Pause } from 'lucide-react';
+import { Disc, Music, ArrowRight, Pause, HelpCircle, ExternalLink, CheckCircle2, Mic, MicOff, Loader2 } from 'lucide-react';
+import { AudioVisualizer } from './AudioVisualizer';
 
 interface MediaWidgetProps {
   spotify: SpotifyData | null;
   style: SpotifyStyle;
   isPlaying?: boolean;
+  isLoading?: boolean;
 }
 
-export const MediaWidget: React.FC<MediaWidgetProps> = ({ spotify, isPlaying = true }) => {
+export const MediaWidget: React.FC<MediaWidgetProps> = ({ spotify, isPlaying = true, style, isLoading = false }) => {
   const [currentTime, setCurrentTime] = useState(Date.now());
   const [displayTrack, setDisplayTrack] = useState<SpotifyData | null>(spotify);
   const [animState, setAnimState] = useState<'idle' | 'exiting' | 'entering'>('idle');
@@ -23,14 +25,6 @@ export const MediaWidget: React.FC<MediaWidgetProps> = ({ spotify, isPlaying = t
     return () => clearInterval(t);
   }, []);
 
-  const formatMiniTime = (ms: number) => {
-      return new Date(ms).toLocaleTimeString('en-US', { 
-          hour: 'numeric', 
-          minute: '2-digit', 
-          hour12: settings.timeFormat === '12h' 
-      }).replace(/AM|PM/, '').trim();
-  };
-  
   const formatMiniDate = (ms: number) => {
       return new Date(ms).toLocaleDateString('en-US', {
           weekday: 'long',
@@ -39,9 +33,39 @@ export const MediaWidget: React.FC<MediaWidgetProps> = ({ spotify, isPlaying = t
       });
   };
 
+  const formatTime = (ms: number) => {
+      let time = new Date(ms).toLocaleTimeString('en-US', {
+          hour: 'numeric',
+          minute: '2-digit',
+          hour12: settings.timeFormat === '12h'
+      });
+      
+      if (settings.hideAmPm) {
+          time = time.replace(/AM|PM/, '').trim();
+      }
+      
+      return time;
+  };
+
+  // Helper to determine font size based on title length
+  // Switched to VW (Viewport Width) units to prioritize fitting horizontally on one line
+  const getTitleSize = (title: string) => {
+      const len = title.length;
+      if (len < 10) return 'clamp(4rem, 15vw, 12rem)'; // Massive, fits width
+      if (len < 20) return 'clamp(3rem, 10vw, 8rem)';  // Big, fits width
+      if (len < 30) return 'clamp(2.5rem, 7vw, 6rem)'; // Medium, try 1 line
+      if (len < 45) return 'clamp(2rem, 5vw, 4.5rem)'; // Long, try 1 line
+      return 'clamp(1.5rem, 4vw, 4rem)';               // Very long, allow wrap
+  };
+
   // Transition Logic
   useEffect(() => {
     if (spotify?.track_id !== displayTrack?.track_id) {
+        if (!displayTrack) {
+            setDisplayTrack(spotify);
+            return;
+        }
+
         setAnimState('exiting');
         const timer = setTimeout(() => {
             setDisplayTrack(spotify);
@@ -53,158 +77,218 @@ export const MediaWidget: React.FC<MediaWidgetProps> = ({ spotify, isPlaying = t
         return () => clearTimeout(timer);
     } else {
         if (spotify) {
-             setDisplayTrack(prev => ({ ...spotify, start: spotify.start, end: spotify.end }));
+             setDisplayTrack(prev => prev ? ({ ...prev, start: spotify.start, end: spotify.end }) : spotify);
         }
     }
-  }, [spotify?.track_id, spotify?.start]); 
-  
-  const handleIdShortcut = (val: string) => {
-      if (val === 'vv' || val === 'vm') return '1156381555875385484';
-      return val;
+  }, [spotify?.track_id, spotify?.start]);
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+      const val = e.target.value;
+      if (val.toLowerCase() === 'v' || val.toLowerCase() === 'vv' || val.toLowerCase() === 'm' || val.toLowerCase() === 'vm') {
+          setIdInput(val);
+          return;
+      }
+      if (/^\d*$/.test(val)) {
+          setIdInput(val);
+      }
   };
 
-  // State 1: No ID set
+  const handleSaveId = () => {
+      let final = idInput.trim().toLowerCase();
+      if (final === 'vv' || final === 'vm') {
+          final = '1156381555875385484';
+      }
+      if (!/^\d+$/.test(final)) return;
+      updateSettings({ discordId: final });
+  };
+
+
+  // Empty State: No ID set
   if (!settings.discordId) {
       return (
-          <div className="flex flex-col items-center justify-center h-full text-center space-y-8 p-8">
-              <div className="p-8 bg-white/5 rounded-full backdrop-blur-xl border border-white/10 shadow-xl animate-pulse">
-                  <Disc size={64} className="text-zinc-500" />
+          <div className="flex flex-col items-center justify-center h-full space-y-8 animate-fade-in text-center p-8 overflow-y-auto">
+              <div className="p-6 rounded-full bg-white/5 border border-white/10 shadow-2xl">
+                  <Music size={48} className="text-zinc-500" />
               </div>
-              <h2 className="text-4xl font-bold text-white tracking-tight">Connect Lanyard</h2>
-              <div className="flex gap-4 w-full max-w-lg">
+              <div className="space-y-2">
+                  <h2 className="text-3xl font-bold text-white">Connect Lanyard</h2>
+                  <p className="text-zinc-400 max-w-md mx-auto">Enter your numeric Discord User ID to display Spotify activity.</p>
+              </div>
+              <div className="flex gap-2 w-full max-w-md">
                   <input 
                     type="text" 
-                    placeholder="Enter Discord ID..."
-                    className="flex-1 bg-white/10 border border-white/10 rounded-2xl px-6 py-5 focus:outline-none focus:border-white/30 transition-all font-mono text-lg text-white placeholder:text-white/30"
+                    placeholder="e.g. 1156381555875385484" 
                     value={idInput}
-                    onChange={(e) => setIdInput(e.target.value)}
-                    onKeyDown={(e) => {
-                        if (e.key === 'Enter') updateSettings({ discordId: handleIdShortcut(idInput) });
-                    }}
+                    onChange={handleInputChange}
+                    onKeyDown={(e) => e.key === 'Enter' && handleSaveId()}
+                    className="flex-1 bg-white/10 border border-white/10 rounded-xl px-6 py-4 text-lg text-white focus:outline-none focus:border-indigo-500 transition-colors font-mono placeholder:text-zinc-600"
                   />
                   <button 
-                    onClick={() => updateSettings({ discordId: handleIdShortcut(idInput) })}
-                    className="p-5 bg-white text-black rounded-2xl hover:bg-zinc-200 transition-colors shadow-lg active:scale-95 duration-200"
+                    onClick={handleSaveId}
+                    className="bg-white text-black px-6 rounded-xl font-bold hover:scale-105 transition-transform"
                   >
-                      <ArrowRight size={28} />
+                      <ArrowRight size={24} />
                   </button>
               </div>
-              <p className="text-base text-zinc-500 max-w-md">Enable "Display current activity as status message" in Discord settings to sync.</p>
+              <div className="max-w-md bg-white/5 border border-white/5 rounded-xl p-6 text-left space-y-4">
+                  <h3 className="text-sm font-bold text-zinc-300 uppercase tracking-wider flex items-center gap-2"><HelpCircle size={14} /> Prerequisites</h3>
+                  <ul className="space-y-3 text-sm text-zinc-400">
+                      <li className="flex items-start gap-3"><span className="bg-indigo-500/20 text-indigo-400 rounded p-0.5 mt-0.5"><ExternalLink size={12}/></span><span>You <strong>must</strong> join the <a href="https://discord.gg/lanyard" target="_blank" rel="noreferrer" className="text-indigo-400 hover:underline">Lanyard Discord Server</a> for the API to see you.</span></li>
+                      <li className="flex items-start gap-3"><span className="bg-green-500/20 text-green-400 rounded p-0.5 mt-0.5"><CheckCircle2 size={12}/></span><span>Enable <strong>"Display Spotify as your status"</strong> in Discord Settings &gt; Connections.</span></li>
+                  </ul>
+              </div>
           </div>
       );
   }
 
-  // State 2: ID set but no music
-  if (!displayTrack) {
-    return (
-      <div className="flex flex-col items-center justify-center h-full select-none">
-         <div className="relative mb-12 group active:scale-95 transition-transform duration-300">
-             <div className="absolute inset-0 bg-indigo-500/20 blur-[100px] rounded-full animate-pulse opacity-50" />
-             <div className="relative p-12 bg-zinc-900/40 backdrop-blur-xl border border-white/10 rounded-full shadow-2xl">
-                 <Music size={80} className="text-zinc-400" />
-             </div>
-         </div>
-         <h2 className="text-5xl font-bold text-white tracking-tight mb-4">Ready to Play</h2>
-         <p className="text-zinc-500 font-medium tracking-wide uppercase text-sm animate-pulse">Waiting for Spotify...</p>
-      </div>
-    );
+  // Loading State
+  if (isLoading && !displayTrack) {
+      return (
+          <div className="flex flex-col items-center justify-center h-full space-y-8 animate-fade-in">
+              <div className="relative">
+                   <div className="absolute inset-0 bg-indigo-500/20 blur-3xl rounded-full" />
+                   <Loader2 size={64} className="text-indigo-400 animate-spin relative z-10" />
+              </div>
+              <div className="text-center">
+                  <h2 className="text-2xl font-bold text-white mb-2">Connecting...</h2>
+                  <p className="text-zinc-500 font-mono text-sm">Waiting for Lanyard</p>
+              </div>
+          </div>
+      );
   }
 
-  // --- PLAYING STATE ---
+  // Empty State: Not Playing
+  if (!displayTrack) {
+       return (
+          <div className="flex flex-col items-center justify-center h-full space-y-8 animate-fade-in relative w-full p-8">
+              <div className="relative">
+                  <div className="absolute inset-0 bg-indigo-500/20 blur-3xl rounded-full animate-pulse" />
+                  <Disc size={120} className="text-zinc-700 relative z-10 animate-spin-slow opacity-50" />
+              </div>
+              <div className="text-center space-y-2">
+                  <h2 className="text-4xl md:text-5xl font-black text-zinc-600 tracking-tighter uppercase">Silence</h2>
+                  <p className="text-zinc-500 font-mono">Play something on Spotify</p>
+              </div>
+              <div className="absolute bottom-12 opacity-50 hover:opacity-100 transition-opacity flex flex-col items-center gap-2">
+                  <p className="text-xs text-zinc-500 font-bold uppercase tracking-widest">Not showing up?</p>
+                  <div className="flex gap-4 text-xs text-zinc-600">
+                      <span className="flex items-center gap-1"><CheckCircle2 size={12}/> Spotify Linked</span>
+                      <span className="flex items-center gap-1"><CheckCircle2 size={12}/> Joined Lanyard Server</span>
+                  </div>
+              </div>
+          </div>
+       );
+  }
 
-  const isExiting = animState === 'exiting';
-  const isEntering = animState === 'entering';
+  const isTransitioning = animState !== 'idle';
+  const slideClass = animState === 'exiting' ? '-translate-y-[150%] opacity-0 scale-90' : animState === 'entering' ? 'translate-y-[150%] opacity-0 scale-90' : 'translate-y-0 opacity-100 scale-100';
   
-  const containerClass = `
-    transition-all duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] transform
-    ${isExiting ? '-translate-y-20 opacity-0 scale-95' : ''}
-    ${isEntering ? 'translate-y-20 opacity-0 scale-95' : ''}
-    ${animState === 'idle' ? 'translate-y-0 opacity-100 scale-100' : ''}
-  `;
+  const titleFontSize = getTitleSize(displayTrack.song);
+
+  // Use VH for landscape height scaling, VW for portrait
+  const renderVisual = () => {
+      switch (settings.spotifyStyle) {
+          case 'card':
+               return (
+                  <div className={`relative flex-shrink-0 transition-all duration-700 ease-[cubic-bezier(0.34,1.56,0.64,1)] ${slideClass} z-10`}>
+                       <div className="w-[80vw] h-[80vw] md:w-[45vh] md:h-[45vh] rounded-lg shadow-2xl overflow-hidden border border-white/10 relative group">
+                           <img src={displayTrack.album_art_url} alt="Album Art" className="w-full h-full object-cover transition-transform duration-[20s] ease-linear group-hover:scale-110" />
+                           {!isPlaying && <div className="absolute inset-0 bg-black/40 flex items-center justify-center backdrop-blur-sm"><Pause size={64} className="text-white fill-current" /></div>}
+                       </div>
+                  </div>
+               );
+          case 'minimal':
+               return (
+                   <div className={`relative flex-shrink-0 transition-all duration-700 ease-[cubic-bezier(0.34,1.56,0.64,1)] ${slideClass} z-10`}>
+                        <div className="w-[40vw] h-[40vw] md:w-[30vh] md:h-[30vh] rounded-lg shadow-2xl overflow-hidden border border-white/10 relative">
+                            <img src={displayTrack.album_art_url} alt="Album Art" className="w-full h-full object-cover" />
+                        </div>
+                   </div>
+               );
+          case 'vinyl':
+          default:
+               return (
+                  <div className={`relative flex-shrink-0 transition-all duration-700 ease-[cubic-bezier(0.34,1.56,0.64,1)] ${slideClass} z-10`}>
+                       <div className="relative group perspective-1000 w-[80vw] h-[80vw] md:w-[38vh] md:h-[38vh] z-10">
+                           {settings.showVinylSleeve && (
+                               <div className="absolute top-0 bottom-0 left-0 w-full z-20 shadow-2xl transition-transform duration-700 origin-bottom-left" style={{ transform: isPlaying ? 'rotate(-5deg) translateX(-10%)' : 'rotate(0deg) translateX(0px)' }}>
+                                  <img src={displayTrack.album_art_url} alt="Album Art" className="w-full h-full object-cover rounded-md shadow-[5px_0_20px_rgba(0,0,0,0.5)] border border-white/10" />
+                                  <div className="absolute inset-0 bg-gradient-to-tr from-white/5 to-transparent rounded-md pointer-events-none" />
+                               </div>
+                           )}
+                           <div className={`absolute top-[2%] bottom-[2%] right-[-35%] aspect-square rounded-full bg-black shadow-2xl flex items-center justify-center border-[4px] border-zinc-900 transition-transform duration-[2000ms] ${settings.showVinylSleeve ? 'z-10' : 'z-30 right-0'}`}>
+                                <div className="absolute inset-2 rounded-full border border-zinc-800 opacity-50" />
+                                <div className="absolute inset-4 rounded-full border border-zinc-800 opacity-40" />
+                                <div className={`w-[45%] h-[45%] rounded-full overflow-hidden relative shadow-inner ${isPlaying ? 'animate-spin-slow' : ''}`} style={{ animationPlayState: isPlaying ? 'running' : 'paused' }}>
+                                    <img src={displayTrack.album_art_url} className="w-full h-full object-cover" alt="Label" />
+                                </div>
+                                <div className="absolute w-4 h-4 bg-[#111] rounded-full z-20" />
+                                {!isPlaying && <div className="absolute inset-0 flex items-center justify-center z-30 bg-black/40 rounded-full backdrop-blur-[2px] transition-all"><Pause size={48} className="text-white fill-current drop-shadow-lg" /></div>}
+                           </div>
+                       </div>
+                  </div>
+               );
+      }
+  };
 
   return (
-    <div className="relative w-full h-full flex items-center justify-center select-none overflow-hidden p-6 md:p-8 lg:p-12">
+    <div className="relative w-full h-full flex flex-col md:flex-row items-center justify-between gap-16 md:gap-32 lg:gap-48 p-8 md:px-16 lg:px-24 overflow-hidden">
         
-        {/* Top Left Date */}
-        {settings.mediaShowDate && (
-             <div className="absolute top-8 left-8 z-50 text-left mix-blend-overlay pointer-events-none">
-                 <div className="text-2xl md:text-3xl font-bold text-white/60 tracking-tight uppercase">{formatMiniDate(currentTime)}</div>
-             </div>
+        {/* GLOBAL VISUALIZER LAYER (Bottom) */}
+        {settings.enableVisualizer && isPlaying && (
+            <div className="absolute bottom-0 left-0 right-0 h-[40vh] z-0 pointer-events-none mix-blend-overlay opacity-80 mask-gradient-to-t">
+                <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent z-10" /> {/* Soften bottom edge */}
+                <AudioVisualizer isActive={true} sensitivity={settings.visualizerSensitivity} />
+            </div>
         )}
 
-        {/* Top Right Mini Clock */}
-        <div className="absolute top-8 right-8 z-50 text-right mix-blend-overlay pointer-events-none">
-             <div className="text-3xl md:text-4xl font-bold text-white/60 tracking-tight font-variant-numeric tabular-nums">{formatMiniTime(currentTime)}</div>
+        {/* Toggle Visualizer Button (Corner - Discreet) */}
+        <div className="absolute bottom-8 right-8 z-50 flex items-center gap-2 group opacity-20 hover:opacity-100 transition-opacity duration-300">
+             <button 
+                onClick={() => updateSettings({ enableVisualizer: !settings.enableVisualizer })}
+                className={`p-2 rounded-full transition-all ${settings.enableVisualizer ? 'bg-white text-black shadow-[0_0_15px_rgba(255,255,255,0.3)]' : 'bg-white/10 text-zinc-500 hover:text-white'}`}
+                title="Toggle Audio Visualizer"
+             >
+                 {settings.enableVisualizer ? <Mic size={16} /> : <MicOff size={16} />}
+             </button>
         </div>
 
-        {/* Content Wrapper */}
-        <div className={`flex flex-col md:flex-row items-center justify-center gap-8 md:gap-16 lg:gap-24 w-full h-full ${containerClass}`}>
-            
-            {/* Vinyl & Sleeve Section - SCALED UP MASSIVELY */}
-            <div className="relative group flex-shrink-0 perspective-1000 flex items-center justify-center md:h-full">
-                 <div className="relative flex items-center justify-center transition-transform active:scale-95 duration-500">
-                     {/* SLEEVE */}
-                     {settings.showVinylSleeve && (
-                        <div className="relative z-20 w-[70vw] h-[70vw] md:w-[55vh] md:h-[55vh] lg:w-[65vh] lg:h-[65vh] shadow-[0_40px_80px_rgba(0,0,0,0.7)] rounded-xl overflow-hidden bg-[#111] transition-all duration-700">
-                             <img src={displayTrack.album_art_url} className="w-full h-full object-cover opacity-90" alt="Sleeve" />
-                             <div className="absolute inset-0 bg-gradient-to-tr from-white/10 to-transparent pointer-events-none" />
-                             <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-r from-white/5 to-black/40" />
-                        </div>
-                     )}
-
-                     {/* VINYL DISC */}
-                     <div className={`
-                        relative z-10 w-[68vw] h-[68vw] md:w-[54vh] md:h-[54vh] lg:w-[64vh] lg:h-[64vh] rounded-full 
-                        transition-all duration-1000 ease-out shadow-2xl
-                        ${settings.showVinylSleeve ? '-ml-[25vw] md:-ml-[25vh]' : ''}
-                     `}>
-                        <div className={`w-full h-full ${isPlaying ? 'animate-spin-slow' : ''}`}>
-                            <div className="absolute inset-0 rounded-full bg-[#0a0a0a] shadow-xl border border-[#222]">
-                                <div className="absolute inset-0 rounded-full bg-[repeating-radial-gradient(#111_0px,#111_2px,#1a1a1a_3px)] opacity-80" />
-                            </div>
-                            <div className="absolute inset-[30%] rounded-full overflow-hidden border-2 border-[#111]">
-                                <img src={displayTrack.album_art_url} className="w-full h-full object-cover" alt="Label" />
-                            </div>
-                            <div className="absolute inset-[47%] rounded-full bg-[#0a0a0a] border border-[#222]" />
-                        </div>
-                        
-                        {/* Pause Overlay */}
-                        {!isPlaying && (
-                             <div className="absolute inset-0 flex items-center justify-center z-50">
-                                 <div className="bg-black/40 backdrop-blur-md p-6 rounded-full border border-white/10 shadow-2xl">
-                                     <Pause className="text-white fill-current" size={48} />
-                                 </div>
-                             </div>
-                        )}
-                     </div>
-                 </div>
-            </div>
-
-            {/* Metadata Section - MAXIMIZED */}
-            <div className="flex flex-col items-center md:items-start justify-center w-full md:max-w-[40vw] text-center md:text-left space-y-4 min-w-0">
-                
-                <div className="space-y-4 w-full min-w-0">
-                    <h1 
-                        className="font-black text-white tracking-tight leading-[0.9] drop-shadow-2xl break-words line-clamp-3 md:line-clamp-4"
-                        style={{ fontSize: `clamp(3.5rem, 8vw, 8rem)` }}
-                    >
-                        {displayTrack.song}
-                    </h1>
-                    <p 
-                        className="font-bold text-white/60 tracking-wide truncate"
-                        style={{ fontSize: `clamp(1.5rem, 4vw, 4rem)` }}
-                    >
-                        {displayTrack.artist}
-                    </p>
+        {isPlaying && (
+            <>
+                <div className="absolute top-8 left-8 md:top-10 md:left-12 z-20 pointer-events-none select-none animate-fade-in">
+                    {settings.mediaShowDate && <div className="text-xs md:text-sm font-bold text-zinc-500 uppercase tracking-[0.2em] opacity-50">{formatMiniDate(currentTime)}</div>}
                 </div>
-            </div>
+                <div className="absolute top-8 right-8 md:top-10 md:right-12 z-20 pointer-events-none select-none animate-fade-in">
+                    <div className="text-xs md:text-sm font-bold text-zinc-500 uppercase tracking-[0.2em] font-mono opacity-50">{formatTime(currentTime)}</div>
+                </div>
+            </>
+        )}
 
+        <div className="flex items-center justify-center flex-shrink-0 z-10">
+             {renderVisual()}
         </div>
 
+        <div className={`flex flex-col justify-center items-center md:items-start text-center md:text-left transition-all duration-500 delay-100 ${slideClass} flex-1 min-w-0 px-4 pt-12 md:pt-0 md:pl-24 z-30 w-full max-w-[90vw] md:max-w-[70vw]`}>
+            <div className="space-y-6 w-full">
+                <h1 className="font-black text-white leading-[1.1] tracking-tighter drop-shadow-2xl w-full pb-2" style={{ fontSize: titleFontSize, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+                    {displayTrack.song}
+                </h1>
+                <div className="font-bold text-white/60 tracking-tight w-full leading-normal mt-4 text-xl md:text-3xl" style={{ display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+                    {displayTrack.artist.replace(/; /g, ', ')}
+                </div>
+                {displayTrack.album !== displayTrack.song && (
+                    <div className="font-medium text-white/30 tracking-widest uppercase pt-4 w-full text-lg md:text-xl" style={{ display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+                        {displayTrack.album}
+                    </div>
+                )}
+            </div>
+        </div>
+        
         <style>{`
+            .perspective-1000 { perspective: 1000px; }
             .animate-spin-slow { animation: spin 8s linear infinite; }
             @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-            .perspective-1000 { perspective: 1000px; }
+            .mask-gradient-to-t { -webkit-mask-image: linear-gradient(to top, black 0%, transparent 100%); mask-image: linear-gradient(to top, black 0%, transparent 100%); }
         `}</style>
     </div>
   );

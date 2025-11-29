@@ -1,20 +1,82 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
-</div>
+# VCLOCK
 
-# Run and deploy your AI Studio app
+A sleek, customizable smart display dashboard built with React, TypeScript, and Tailwind CSS. Designed to turn any device—from a secondary monitor to an iPad—into a focused information hub.
 
-This contains everything you need to run your app locally.
+![VCLOCK Screenshot](https://images.unsplash.com/photo-1495616811223-4d98c6e9d869?q=80&w=2532&auto=format&fit=crop)
 
-View your app in AI Studio: https://ai.studio/apps/drive/1dQJ_K_I55EZvkHalf9yscrFe2IJQ0F7f
+## ✨ Features
 
-## Run Locally
+*   **Smart Clock**: Multiple styles (Digital, Flip, Stack, Modern) with customizable positioning.
+*   **Media Integration**: Real-time Spotify display via [Lanyard](https://github.com/Phineas/lanyard).
+    *   *Vinyl Mode*: Rotating record animation.
+    *   *Card Mode*: Clean album art display.
+    *   *Visualizer*: Microphone-reactive audio bars.
+*   **Dashboard Widgets**:
+    *   System Health (Battery, etc.)
+    *   Focus Timer (Pomodoro)
+    *   Todo List
+    *   News Ticker
+    *   Ambient Sounds Mixer
+*   **Customization**:
+    *   Liquid Glass Theme
+    *   Custom Wallpapers
+    *   Font & Accent Color selection
+    *   Screensaver mode (Burn-in protection)
 
-**Prerequisites:**  Node.js
+## 🚀 Getting Started
 
+### Prerequisites
 
-1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
+*   Node.js (v18 or higher)
+*   npm or yarn
+
+### Installation
+
+1.  Clone the repository:
+    ```bash
+    git clone https://github.com/yourusername/vclock.git
+    cd vclock
+    ```
+
+2.  Install dependencies:
+    ```bash
+    npm install
+    ```
+
+3.  Run the development server:
+    ```bash
+    npm run dev
+    ```
+
+## 🎵 Setting up Music Integration (Lanyard)
+
+To see your Spotify activity on the dashboard, VCLOCK uses the **Lanyard API**.
+
+1.  **Join the Server**: You **must** join the [Lanyard Discord Server](https://discord.gg/lanyard) for the API to be able to read your presence.
+2.  **Discord Settings**: Go to **User Settings > Connections** and toggle on **"Display Spotify as your status"**.
+3.  **Get your ID**:
+    *   Enable **Developer Mode** in Discord (Settings > Advanced).
+    *   Right-click your profile and select **Copy User ID**.
+4.  **Configure VCLOCK**: Open Settings (top left icon) > Data > Enter your Discord ID.
+
+## 🛠 Deployment
+
+### Vercel (Recommended)
+
+This project is optimized for Vercel.
+
+1.  Push your code to GitHub.
+2.  Import the repository in Vercel.
+3.  Framework Preset: **Vite**.
+4.  Deploy!
+
+## 📱 Mobile & Tablet Support
+
+VCLOCK is fully responsive.
+*   **Landscape Mode**: Optimized for dashboard usage on phones and tablets.
+*   **Touch Controls**: Large hit targets and swipe navigation.
+*   **Wake Lock**: Prevents the device from sleeping while open (configurable).
+
+## 📄 License
+
+MIT License. Free to use and modify.

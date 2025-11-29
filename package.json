@@ -4,19 +4,11 @@
   "description": "A sleek, customizable smart display dashboard.",
   "private": true,
   "version": "1.1.0",
-  "main": "dist-electron/main.js",
-  "author": {
-    "name": "vihar",
-    "email": "contact@vihar.cc",
-    "url": "https://vihar.cc"
-  },
   "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
-    "preview": "vite preview",
-    "electron:dev": "concurrently -k \"cross-env BROWSER=none npm run dev\" \"wait-on http://localhost:5173 && electron .\"",
-    "electron:build": "vite build && tsc -p electron/tsconfig.json && electron-builder"
+    "preview": "vite preview"
   },
   "dependencies": {
     "lucide-react": "^0.344.0",
@@ -28,34 +20,9 @@
     "@types/react-dom": "^18.2.21",
     "@vitejs/plugin-react": "^4.2.1",
     "autoprefixer": "^10.4.18",
-    "concurrently": "^8.2.2",
-    "cross-env": "^7.0.3",
-    "electron": "^29.1.0",
-    "electron-builder": "^24.13.3",
     "postcss": "^8.4.35",
     "tailwindcss": "^3.4.1",
     "typescript": "^5.4.2",
-    "vite": "^5.1.5",
-    "wait-on": "^7.2.0"
-  },
-  "build": {
-    "appId": "cc.vihar.vclock",
-    "productName": "VCLOCK",
-    "directories": {
-      "output": "release"
-    },
-    "files": [
-      "dist/**/*",
-      "dist-electron/**/*"
-    ],
-    "win": {
-      "target": "nsis"
-    },
-    "mac": {
-      "target": "dmg"
-    },
-    "linux": {
-      "target": "AppImage"
-    }
+    "vite": "^5.1.5"
   }
 }

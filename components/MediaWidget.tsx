@@ -148,7 +148,7 @@ export const MediaWidget: React.FC<MediaWidgetProps> = ({ spotify, isPlaying = t
                   <h3 className="text-sm font-bold text-zinc-300 uppercase tracking-wider flex items-center gap-2"><HelpCircle size={14} /> Prerequisites</h3>
                   <ul className="space-y-3 text-sm text-zinc-400">
                       <li className="flex items-start gap-3"><span className="bg-indigo-500/20 text-indigo-400 rounded p-0.5 mt-0.5"><ExternalLink size={12}/></span><span>You <strong>must</strong> join the <a href="https://discord.gg/lanyard" target="_blank" rel="noreferrer" className="text-indigo-400 hover:underline">Lanyard Discord Server</a> for the API to see you.</span></li>
-                      <li className="flex items-start gap-3"><span className="bg-green-500/20 text-green-400 rounded p-0.5 mt-0.5"><CheckCircle2 size={12}/></span><span>Enable <strong>"Display Spotify as your status"</strong> in Discord Settings > Connections.</span></li>
+                      <li className="flex items-start gap-3"><span className="bg-green-500/20 text-green-400 rounded p-0.5 mt-0.5"><CheckCircle2 size={12}/></span><span>Enable <strong>"Display Spotify as your status"</strong> in Discord Settings &gt; Connections.</span></li>
                   </ul>
               </div>
           </div>

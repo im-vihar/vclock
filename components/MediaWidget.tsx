@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import { SpotifyData, SpotifyStyle } from '../types';
 import { useSettings } from '../contexts/SettingsContext';
-import { Disc, Music, ArrowRight, Pause, HelpCircle, ExternalLink, CheckCircle2, Mic, MicOff, Loader2 } from 'lucide-react';
+import { Disc, Music, ArrowRight, Pause, HelpCircle, ExternalLink, CheckCircle2, Mic, MicOff, Loader2, AlertTriangle } from 'lucide-react';
 import { AudioVisualizer } from './AudioVisualizer';
 
 interface MediaWidgetProps {
@@ -10,9 +10,10 @@ interface MediaWidgetProps {
   style: SpotifyStyle;
   isPlaying?: boolean;
   isLoading?: boolean;
+  error?: string | null;
 }
 
-export const MediaWidget: React.FC<MediaWidgetProps> = ({ spotify, isPlaying = true, isLoading = false }) => {
+export const MediaWidget: React.FC<MediaWidgetProps> = ({ spotify, isPlaying = true, isLoading = false, error = null }) => {
   const [currentTime, setCurrentTime] = useState(Date.now());
   const [displayTrack, setDisplayTrack] = useState<SpotifyData | null>(spotify);
   const [animState, setAnimState] = useState<'idle' | 'exiting' | 'entering'>('idle');
@@ -86,7 +87,7 @@ export const MediaWidget: React.FC<MediaWidgetProps> = ({ spotify, isPlaying = t
           setIdInput(val);
           return;
       }
-      if (/^\d*$/.test(val)) {
+      if (/^\\d*$/.test(val)) {
           setIdInput(val);
       }
   };
@@ -96,10 +97,27 @@ export const MediaWidget: React.FC<MediaWidgetProps> = ({ spotify, isPlaying = t
       if (final === 'vv' || final === 'vm') {
           final = '1156381555875385484';
       }
-      if (!/^\d+$/.test(final)) return;
+      if (!/^\\d+$/.test(final)) return;
       updateSettings({ discordId: final });
   };
 
+    if (error) {
+      return (
+          <div className="flex flex-col items-center justify-center h-full space-y-4 animate-fade-in text-center p-8">
+              <div className="p-4 rounded-full bg-red-500/10 border border-red-500/20">
+                  <AlertTriangle size={32} className="text-red-400" />
+              </div>
+              <div className="space-y-1">
+                  <h2 className="text-xl font-bold text-white">Lanyard Error</h2>
+                  <p className="text-red-400 font-mono text-sm max-w-sm">{error}</p>
+              </div>
+                <p className="text-zinc-500 text-xs max-w-sm">
+                    This usually means Lanyard couldn't find a Discord user with that ID. Make sure you've entered it correctly and have joined the Lanyard Discord server.
+                </p>
+          </div>
+      );
+  }
+  
   if (!settings.discordId) {
       return (
           <div className="flex flex-col items-center justify-center h-full space-y-8 animate-fade-in text-center p-8 overflow-y-auto">
@@ -130,7 +148,7 @@ export const MediaWidget: React.FC<MediaWidgetProps> = ({ spotify, isPlaying = t
                   <h3 className="text-sm font-bold text-zinc-300 uppercase tracking-wider flex items-center gap-2"><HelpCircle size={14} /> Prerequisites</h3>
                   <ul className="space-y-3 text-sm text-zinc-400">
                       <li className="flex items-start gap-3"><span className="bg-indigo-500/20 text-indigo-400 rounded p-0.5 mt-0.5"><ExternalLink size={12}/></span><span>You <strong>must</strong> join the <a href="https://discord.gg/lanyard" target="_blank" rel="noreferrer" className="text-indigo-400 hover:underline">Lanyard Discord Server</a> for the API to see you.</span></li>
-                      <li className="flex items-start gap-3"><span className="bg-green-500/20 text-green-400 rounded p-0.5 mt-0.5"><CheckCircle2 size={12}/></span><span>Enable <strong>"Display Spotify as your status"</strong> in Discord Settings &gt; Connections.</span></li>
+                      <li className="flex items-start gap-3"><span className="bg-green-500/20 text-green-400 rounded p-0.5 mt-0.5"><CheckCircle2 size={12}/></span><span>Enable <strong>"Display Spotify as your status"</strong> in Discord Settings > Connections.</span></li>
                   </ul>
               </div>
           </div>
@@ -207,7 +225,7 @@ export const MediaWidget: React.FC<MediaWidgetProps> = ({ spotify, isPlaying = t
                                   <div className="absolute inset-0 bg-gradient-to-tr from-white/5 to-transparent rounded-md pointer-events-none" />
                                </div>
                            )}
-                           <div className={`absolute top-[2%] bottom-[2%] right-[-35%] aspect-square rounded-full bg-black shadow-2xl flex items-center justify-center border-[4px] border-zinc-900 transition-all duration-1000 ease-in-out ${settings.showVinylSleeve ? 'z-10' : 'z-30 right-0'} ${isPlaying ? 'translate-x-[-40%]' : 'translate-x-[0%]'}`}>
+                           <div className={`absolute top-[2%] bottom-[2%] right-[-35%] aspect-square rounded-full bg-black shadow-2xl flex items-center justify-center border-[4px] border-zinc-900 transition-all duration-1000 ease-in-out ${settings.showVinylSleeve ? 'z-10' : 'z-30 right-0'} ${isPlaying ? 'translate-x-[-40%]' : 'translate-x-[0%]'}`}>\
                                 <div className="absolute inset-2 rounded-full border border-zinc-800 opacity-50" />
                                 <div className="absolute inset-4 rounded-full border border-zinc-800 opacity-40" />
                                 <div className={`w-[45%] h-[45%] rounded-full overflow-hidden relative shadow-inner ${isPlaying ? 'animate-spin-slow' : ''}`} style={{ animationPlayState: isPlaying ? 'running' : 'paused' }}>
@@ -216,7 +234,7 @@ export const MediaWidget: React.FC<MediaWidgetProps> = ({ spotify, isPlaying = t
                                 <div className="absolute w-4 h-4 bg-[#111] rounded-full z-20" />
                                 {!isPlaying && <div className="absolute inset-0 flex items-center justify-center z-30 bg-black/40 rounded-full backdrop-blur-[2px] transition-all"><Pause size={48} className="text-white fill-current drop-shadow-lg" /></div>}
                            </div>
-                            <div className={`absolute top-[5%] right-[25%] w-24 h-8 z-40 origin-bottom-right transition-transform duration-1000 ease-in-out ${isPlaying ? 'rotate-[25deg]' : 'rotate-0'}`}>
+                            <div className={`absolute top-[5%] right-[25%] w-24 h-8 z-40 origin-bottom-right transition-transform duration-1000 ease-in-out ${isPlaying ? 'rotate-[25deg]' : 'rotate-0'}`}>\
                                 <div className="h-2 w-full bg-zinc-700 rounded-l-full" />
                                 <div className="absolute top-[-4px] left-0 h-4 w-4 rounded-full bg-zinc-800" />
                             </div>
@@ -261,7 +279,7 @@ export const MediaWidget: React.FC<MediaWidgetProps> = ({ spotify, isPlaying = t
              {renderVisual()}
         </div>
 
-        <div className={`flex flex-col justify-center items-center landscape:items-start md:items-start text-center landscape:text-left md:text-left transition-all duration-500 delay-100 ${slideClass} flex-1 min-w-0 px-4 pt-8 landscape:pt-0 md:pt-0 landscape:pl-16 md:pl-24 z-30 w-full max-w-[90vw] landscape:max-w-[50vw] md:max-w-[70vw]`}>
+        <div className={`flex flex-col justify-center items-center landscape:items-start md:items-start text-center landscape:text-left md:text-left transition-all duration-500 delay-100 ${slideClass} flex-1 min-w-0 px-4 pt-8 landscape:pt-0 md:pt-0 landscape:pl-16 md:pl-24 z-30 w-full max-w-[90vw] landscape:max-w-[50vw] md:max-w-[70vw]`}>\
             <div className="space-y-4 landscape:space-y-6 md:space-y-6 w-full">
                 <h1 className="font-black text-white leading-[1.1] tracking-tighter drop-shadow-2xl w-full pb-2" style={{ fontSize: titleFontSize, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
                     {displayTrack.song}

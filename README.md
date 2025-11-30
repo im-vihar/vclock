@@ -12,6 +12,11 @@ A sleek, customizable smart display dashboard built with React, TypeScript, and 
     *   *Card Mode*: Clean album art display.
     *   *Visualizer*: Microphone-reactive audio bars.
 *   **Dashboard Widgets**:
+    *   **Weather:** Displays the current weather.
+    *   **News:** Shows the latest headlines.
+    *   **Device Info:** Provides information about the device running VCLOCK.
+    *   **Focus:** A widget to help with focus and productivity.
+    *   **Assistant:** A voice assistant widget.
     *   System Health (Battery, etc.)
     *   Focus Timer (Pomodoro)
     *   Todo List
@@ -76,6 +81,19 @@ VCLOCK is fully responsive.
 *   **Landscape Mode**: Optimized for dashboard usage on phones and tablets.
 *   **Touch Controls**: Large hit targets and swipe navigation.
 *   **Wake Lock**: Prevents the device from sleeping while open (configurable).
+
+## 💡 Ideas for the Future
+
+*   **More Widgets:**
+    *   **Calendar:** Integrate with Google Calendar or other calendar services.
+    *   **Public Transit:** Real-time bus/train tracking.
+    *   **Stock Market:** Track stock prices.
+*   **Customizable Layouts:** Allow users to drag and drop widgets to create their own layouts.
+*   **Themes:** More theme options, including light themes.
+*   **Improved Vinyl Animation:**
+    *   Make the vinyl record slide out from the sleeve more realistically.
+    *   Add a tonearm that moves into position when the music starts.
+*   **Desktop App:** Create a standalone desktop app using Electron.
 
 ## 📄 License
 

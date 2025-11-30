@@ -1,32 +1,12 @@
-
 import React, { useState, useEffect } from 'react';
-import { X, Clock, Layout, Palette, Activity, Disc, Sparkles, User, HelpCircle, ExternalLink, Keyboard, Zap, RefreshCw, Mic, Monitor, FlaskConical, AlertTriangle, LogIn } from 'lucide-react';
+import { X, Clock, Layout, Palette, Activity, HelpCircle, ExternalLink, Keyboard, Zap, RefreshCw, Monitor, FlaskConical, LogIn } from 'lucide-react';
 import { useSettings } from '../contexts/SettingsContext';
-import { AccentColor, MusicProvider } from '../types';
 import { redirectToSpotifyAuth, setSpotifyClientId } from '../services/spotifyService';
 
 interface SettingsModalProps {
   isOpen: boolean;
   onClose: () => void;
 }
-
-const ACCENTS: { id: AccentColor; color: string }[] = [
-  { id: 'white', color: 'bg-zinc-100' },
-  { id: 'indigo', color: 'bg-indigo-500' },
-  { id: 'emerald', color: 'bg-emerald-500' },
-  { id: 'rose', color: 'bg-rose-500' },
-  { id: 'amber', color: 'bg-amber-500' },
-  { id: 'cyan', color: 'bg-cyan-500' },
-];
-
-const WALLPAPERS = [
-    'https://images.unsplash.com/photo-1495616811223-4d98c6e9d869?q=80&w=2532&auto=format&fit=crop',
-    'https://images.unsplash.com/photo-1534067783865-9abd3562da71?q=80&w=2554&auto=format&fit=crop',
-    'https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=2672&auto=format&fit=crop',
-    'https://images.unsplash.com/photo-1550684848-fac1c5b4e853?q=80&w=2670&auto=format&fit=crop',
-    'https://images.unsplash.com/photo-1506744038136-46273834b3fb?q=80&w=2670&auto=format&fit=crop',
-    'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=2564&auto=format&fit=crop',
-];
 
 export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
   const { settings, updateSettings } = useSettings();
@@ -40,12 +20,6 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
   }, [settings.spotifyClientId, isOpen]);
 
   if (!isOpen) return null;
-
-  const Toggle = ({ checked, onChange }: { checked: boolean, onChange: () => void }) => (
-      <button onClick={onChange} className={`w-14 h-8 rounded-full relative transition-colors flex-shrink-0 ${checked ? 'bg-white' : 'bg-zinc-800 border border-zinc-700'}`}>
-         <div className={`absolute top-1 w-6 h-6 rounded-full transition-all duration-300 shadow-sm ${checked ? 'bg-black left-7' : 'bg-zinc-400 left-1'}`} />
-      </button>
-  );
 
   const handleLanyardIdChange = (e: React.ChangeEvent<HTMLInputElement>) => {
       let val = e.target.value;

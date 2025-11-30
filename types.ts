@@ -16,6 +16,7 @@ export type AccentColor = 'indigo' | 'emerald' | 'rose' | 'amber' | 'cyan' | 'wh
 export type ClockStyle = 'digital' | 'flip' | 'modern' | 'stack';
 export type ClockPosition = 'center' | 'bottom-left';
 export type LanyardConnectionMode = 'websocket' | 'polling';
+export type MusicProvider = 'lanyard' | 'spotify';
 
 export interface AppSettings {
   timeFormat: TimeFormat;
@@ -27,14 +28,18 @@ export interface AppSettings {
   font: FontOption;
   accentColor: AccentColor;
   
-  // New: Onboarding State
   hasCompletedOnboarding: boolean;
 
-  // Lanyard Settings
   lanyardConnectionMode: LanyardConnectionMode;
   lanyardPollingInterval: number;
+
+  // Spotify Direct Integration
+  musicProvider: MusicProvider;
+  spotifyClientId: string;
+  spotifyAccessToken: string;
+  spotifyRefreshToken: string;
+  spotifyTokenExpires: number;
   
-  // Clock Page Toggles
   clockStyle: ClockStyle;
   clockPosition: ClockPosition;
   hideAmPm: boolean;
@@ -44,23 +49,19 @@ export interface AppSettings {
   clockShowWeather: boolean;
   clockShowNowPlaying: boolean;
 
-  // Visuals
   customBackgroundUrl: string;
   predefinedWallpaper: string;
   backgroundBlur: number;
   glassIntensity: 'low' | 'medium' | 'high';
   enableGlassTheme: boolean;
   
-  // Media Page Toggles
   mediaShowDate: boolean;
   enableVisualizer: boolean;
   visualizerSensitivity: number;
   
-  // Hardware / System
   keepScreenOn: boolean;
   screensaverTimeout: number; // in minutes, 0 to disable
   
-  // Page Toggles
   enableDashboard: boolean;
   enableFocus: boolean;
   enableDeviceInfo: boolean;
@@ -76,6 +77,21 @@ export interface SpotifyData {
   album_art_url: string;
   start: number;
   end: number;
+}
+
+export interface SpotifyApiTrack {
+    item: {
+        id: string;
+        name: string;
+        artists: { name: string }[];
+        album: {
+            name:string;
+            images: { url: string }[];
+        };
+        duration_ms: number;
+    }
+    progress_ms: number;
+    is_playing: boolean;
 }
 
 export interface LanyardData {

@@ -19,6 +19,13 @@ const DEFAULT_SETTINGS: AppSettings = {
 
   lanyardConnectionMode: 'polling',
   lanyardPollingInterval: 2000,
+
+  // Spotify Direct Integration
+  spotifyClientId: '',
+  spotifyAccessToken: '',
+  spotifyRefreshToken: '',
+  spotifyTokenExpires: 0,
+  musicProvider: 'lanyard',
   
   clockStyle: 'modern',
   clockPosition: 'center', 

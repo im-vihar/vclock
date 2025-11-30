@@ -10,9 +10,10 @@ import { SettingsModal } from './components/SettingsModal';
 import { Screensaver } from './components/Screensaver';
 import { OnboardingOverlay } from './components/OnboardingOverlay';
 import { SettingsProvider, useSettings } from './contexts/SettingsContext';
-import { useLanyard } from './hooks/useLanyard';
+import { useMusic } from './hooks/useMusic';
 import { useWakeLock } from './hooks/useWakeLock';
 import { Settings, Maximize2, Minimize2 } from 'lucide-react';
+import { getAccessToken, setSpotifyClientId } from './services/spotifyService';
 
 const TopBarClock = () => {
     const [time, setTime] = useState(new Date());
@@ -34,27 +35,58 @@ const AppContent: React.FC = () => {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [isIdle, setIsIdle] = useState(false);
   
-  const { settings } = useSettings();
-  const { data: lanyardData, isLoading: isLanyardLoading } = useLanyard(settings.discordId);
+  const { settings, updateSettings } = useSettings();
+  const { data: musicData, isLoading: isMusicLoading, error: musicError } = useMusic();
   const { requestWakeLock, releaseWakeLock } = useWakeLock();
   
-  const prevListeningRef = useRef(lanyardData.listening_to_spotify);
+  const prevListeningRef = useRef(musicData.listening_to_spotify);
   const idleTimerRef = useRef<number | null>(null);
+
+  useEffect(() => {
+      const handleSpotifyCallback = async () => {
+          const params = new URLSearchParams(window.location.search);
+          const code = params.get('code');
+
+          if (code) {
+              try {
+                  if (settings.spotifyClientId) {
+                    setSpotifyClientId(settings.spotifyClientId);
+                    const { access_token, refresh_token } = await getAccessToken(code);
+                    updateSettings({
+                        spotifyAccessToken: access_token,
+                        spotifyRefreshToken: refresh_token,
+                        spotifyTokenExpires: Date.now() + 3600 * 1000,
+                        musicProvider: 'spotify', // Switch to spotify automatically
+                    });
+                    // Open settings to show the user it worked
+                    setIsSettingsOpen(true);
+                  }
+              } catch (error) {
+                  console.error("Error getting Spotify token:", error);
+              }
+              // Clean up URL
+              window.history.replaceState({}, document.title, window.location.pathname);
+          }
+      };
+
+      handleSpotifyCallback();
+  }, [settings.spotifyClientId, updateSettings]);
 
   // Define Pages dynamically
   const pages = [
       { 
           id: 'clock', 
-          component: <div className="w-full h-full relative flex flex-col"><div className="flex-1 w-full h-full"><ClockWidget spotify={lanyardData.spotify} /></div></div> 
+          component: <div className="w-full h-full relative flex flex-col"><div className="flex-1 w-full h-full"><ClockWidget spotify={musicData.spotify} /></div></div> 
       },
       { 
           id: 'media', 
           component: <div className="w-full h-full flex items-center justify-center p-0">
               <MediaWidget 
-                spotify={lanyardData.spotify} 
+                spotify={musicData.spotify} 
                 style={settings.spotifyStyle} 
-                isPlaying={lanyardData.listening_to_spotify} 
-                isLoading={isLanyardLoading}
+                isPlaying={musicData.listening_to_spotify} 
+                isLoading={isMusicLoading}
+                error={musicError}
               />
           </div> 
       },
@@ -119,7 +151,7 @@ const AppContent: React.FC = () => {
 
   // Auto Switch Logic
   useEffect(() => {
-      const isListening = lanyardData.listening_to_spotify;
+      const isListening = musicData.listening_to_spotify;
       const wasListening = prevListeningRef.current;
       
       const mediaIndex = pages.findIndex(p => p.id === 'media');
@@ -136,7 +168,7 @@ const AppContent: React.FC = () => {
           }
       }
       prevListeningRef.current = isListening;
-  }, [lanyardData.listening_to_spotify, settings.autoSwitchToMedia, pages, activePage]);
+  }, [musicData.listening_to_spotify, settings.autoSwitchToMedia, pages, activePage]);
 
   // Keyboard Nav
   useEffect(() => {
@@ -166,8 +198,8 @@ const AppContent: React.FC = () => {
 
   // Background Logic
   const defaultBg = settings.customBackgroundUrl || settings.predefinedWallpaper;
-  const musicBg = lanyardData.spotify?.album_art_url;
-  const isPlayingMusic = lanyardData.listening_to_spotify && musicBg;
+  const musicBg = musicData.spotify?.album_art_url;
+  const isPlayingMusic = musicData.listening_to_spotify && musicBg;
   
   const bgBlur = settings.backgroundBlur;
 
